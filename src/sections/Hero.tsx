@@ -213,6 +213,7 @@ function Hero() {
 
               <HeroForm 
                 onSubmitSuccess={() => setShowSuccess(true)} 
+                promoCode={promoCode}
               />
             </div>
           </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { IMaskInput } from 'react-imask';
 import { formSchema, formatPhoneInput } from '@/utils/validationSchema';
 import type { ValidationError, ApiResponse } from '@/types/form';
@@ -10,6 +10,7 @@ interface FormData {
   name: string;
   phone: string;
   email: string;
+  promocode: string;
 }
 
 interface FormErrors {
@@ -19,17 +20,28 @@ interface FormErrors {
 interface HeroFormProps {
   className?: string;
   onSubmitSuccess?: () => void;
+  promoCode?: string;
 }
 
-function HeroForm({ className = '', onSubmitSuccess }: HeroFormProps) {
-  const [promoCode, setPromoCode] = useState('');
+function HeroForm({ className = '', onSubmitSuccess, promoCode = '' }: HeroFormProps) {
   const [formData, setFormData] = useState<FormData>({
     name: '',
     phone: '',
-    email: ''
+    email: '',
+    promocode: promoCode
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Update form data when promoCode prop changes
+  useEffect(() => {
+    if (promoCode) {
+      setFormData(prev => ({
+        ...prev,
+        promocode: promoCode
+      }));
+    }
+  }, [promoCode]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -79,7 +91,7 @@ function HeroForm({ className = '', onSubmitSuccess }: HeroFormProps) {
       const result = await response.json() as ApiResponse;
       
       if (result.success) {
-        setFormData({ name: '', phone: '', email: '' });
+        setFormData({ name: '', phone: '', email: '', promocode: '' });
         if (onSubmitSuccess) {
           onSubmitSuccess(); // Call the parent's success handler
         }
@@ -155,8 +167,8 @@ function HeroForm({ className = '', onSubmitSuccess }: HeroFormProps) {
         <div className='flex-1 md:hidden'>
             <input
               type="text"
-              value={promoCode}
-              onChange={(e) => setPromoCode(e.target.value)}
+              value={formData.promocode}
+              onChange={(e) => setFormData(prev => ({ ...prev, promocode: e.target.value }))}
               placeholder="Промокод"
               className="bg-[#3D4C6A] text-white text-sm opacity-90 py-4 px-3 rounded-xl w-full font-medium placeholder-white/70 mb-4"
             />

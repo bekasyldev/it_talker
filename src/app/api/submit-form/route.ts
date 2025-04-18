@@ -8,6 +8,7 @@ interface FormData {
     name: string;
     email: string;
     phone: string;
+    promocode?: string;  // Added promocode as optional field
 }
 
 // Handle the private key properly - it needs to have actual newlines
@@ -30,16 +31,16 @@ function generateUniqueId() {
 }
 
 async function ensureHeaders() {
-    const headers = ['ID', 'Дата', 'Имя', 'Телефон', 'Email'];
+    const headers = ['ID', 'Дата', 'Имя', 'Телефон', 'Email', 'Промокод'];
     const response = await sheets.spreadsheets.values.get({
         spreadsheetId,
-        range: `${sheetName}!A1:E1`,
+        range: `${sheetName}!A1:F1`,
     });
 
     if (!response.data.values || response.data.values[0].join(',') !== headers.join(',')) {
         await sheets.spreadsheets.values.update({
             spreadsheetId,
-            range: `${sheetName}!A1:E1`,
+            range: `${sheetName}!A1:F1`,
             requestBody: { values: [headers] },
             valueInputOption: 'RAW'
         });
@@ -98,11 +99,18 @@ export async function POST(request: Request) {
             day: '2-digit'
         });
 
-        const row = [uniqueId, formattedDate, data.name, data.phone, data.email];
+        const row = [
+            uniqueId,
+            formattedDate,
+            data.name,
+            data.phone,
+            data.email,
+            data.promocode || '' // Add promocode with fallback to empty string
+        ];
 
         await sheets.spreadsheets.values.append({
             spreadsheetId,
-            range: `${sheetName}!A:E`,
+            range: `${sheetName}!A:F`, // Updated range to include column F
             requestBody: { values: [row] },
             valueInputOption: 'RAW',
             insertDataOption: 'INSERT_ROWS'
@@ -122,4 +130,4 @@ export async function POST(request: Request) {
             { status: 500 }
         );
     }
-} 
+}
